@@ -31,7 +31,7 @@ I containerized the application using Docker and deployed it on Amazon EKS with 
 Problem Statement 3:
 
 - KubeArmor policy for the Kubernetes workload
-- 
+  
 Additionally, I applied KubeArmor policies to enforce access restrictions on sensitive paths, ensuring pod-level security. All manifests, policies, and scripts are included in the repo for review.
 
 ![Backup 7](screenshots/7.png)
