@@ -45,7 +45,10 @@ jobs:
       - name: Set up Kubeconfig
         run: |
           mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG_CONTENT }}" > $HOME/.kube/config
+          cat <<EOF > $HOME/.kube/config
+          ${{ secrets.KUBECONFIG_CONTENT }}
+          EOF
+
 
       - name: Deploy to Minikube
         run: |
