@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Docker
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to DockerHub
@@ -37,18 +37,23 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+          version: v1.28.0
 
-      - name: Update kubeconfig for EKS
-        run: aws eks update-kubeconfig --name my-eks-cluster --region ap-south-1
-
-      - name: Deploy to EKS
+      - name: Configure Kubeconfig
         run: |
-          kubectl get deployments -n default || kubectl apply -f ./wisecow/k8s-deployment.yaml
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG_CONTENT }}" > $HOME/.kube/config
+
+      - name: Deploy Wisecow to EKS
+        run: |
+          # Apply deployment (creates if it doesn't exist, updates if it does)
+          kubectl apply -f ./wisecow/k8s-deployment.yaml
+
+          # Update deployment image
           kubectl set image deployment/wisecow-deployment wisecow=${{ secrets.DOCKER_USERNAME }}/wisecow:latest -n default
+
+          # Wait for rollout to complete
           kubectl rollout status deployment/wisecow-deployment -n default
