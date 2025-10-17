@@ -50,7 +50,7 @@ jobs:
       - name: Deploy to EKS
         run: |
           if ! kubectl get deployment wisecow-deployment -n default; then
-            kubectl apply -f ./wisecow/k8s-deployment.yaml
+            kubectl apply -f ./wisecow/deployment.yaml
           fi
           kubectl set image deployment/wisecow-deployment wisecow=${{ secrets.DOCKER_USERNAME }}/wisecow:latest -n default
           kubectl rollout status deployment/wisecow-deployment -n default
