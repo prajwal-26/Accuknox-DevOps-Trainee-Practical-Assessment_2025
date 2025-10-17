@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
+      - name: Set up Docker
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to DockerHub
@@ -42,18 +42,18 @@ jobs:
         with:
           version: v1.28.0
 
-      - name: Configure Kubeconfig
+      - name: Set up kubeconfig for EKS
         run: |
           mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG_CONTENT }}" > $HOME/.kube/config
+          echo "${{ secrets.KUBECONFIG_CONTENT }}" | base64 --decode > $HOME/.kube/config
 
-      - name: Deploy Wisecow to EKS
+      - name: Apply deployment if not exists
         run: |
-          # Apply deployment (creates if it doesn't exist, updates if it does)
-          kubectl apply -f ./wisecow/k8s-deployment.yaml
+          if ! kubectl get deployment wisecow-deployment -n default; then
+            kubectl apply -f ./wisecow/k8s-deployment.yaml
+          fi
 
-          # Update deployment image
+      - name: Update deployment image
+        run: |
           kubectl set image deployment/wisecow-deployment wisecow=${{ secrets.DOCKER_USERNAME }}/wisecow:latest -n default
-
-          # Wait for rollout to complete
           kubectl rollout status deployment/wisecow-deployment -n default
